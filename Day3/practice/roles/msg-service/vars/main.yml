@@ -1,0 +1,5 @@
+---
+# vars file for msg-service
+port: "{{app_port}}"
+message: "{{app_message}}"
+

@@ -1,0 +1,15 @@
+---
+# tasks file for base
+- name: Provisioning of VMs
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - python=2.7.15~rc1-1
+    - python-pip=9.0.1-2.3~ubuntu1.18.04.1
+    - curl
+    - wget
+    - sudo
+    - net-tools
+  become: yes
+  when: ansible_os_family == "Debian" and ansible_distribution_version == "18.04"
