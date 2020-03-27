@@ -1,0 +1,6 @@
+- name: restart mysql-check
+  systemd:
+   name: mysql-check
+   daemon_reload: yes
+   state: restarted
+  become: yes

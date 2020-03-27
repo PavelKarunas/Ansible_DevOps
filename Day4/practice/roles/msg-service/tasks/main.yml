@@ -1,0 +1,73 @@
+---
+# tasks file for msg-service
+- name: Create custom fact directory
+  file:
+    path: /etc/ansible/facts.d
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Create custom fact
+  copy:
+    content: |
+      {
+          "PORT": "{{ app_port }}",
+          "USER": "{{ app_user }}",
+          "GROUP": "{{ app_group }}",
+          "MESSAGE": "{{ app_message }}"
+      }
+    dest: /etc/ansible/facts.d/msg_service.fact
+  become: yes
+
+- name: Call create user role
+  include_role:
+    name: user
+  vars:
+    username: "{{ app_user }}"
+    groupname: "{{ app_group }}"
+
+- name: Create a directories if it does not exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+  with_items:
+    - "{{ app_home }}bin/"
+    - "{{ app_home }}conf/"
+  become: yes
+
+- name: Download from URL
+  get_url:
+    url: https://playpit-labs-assets.s3-eu-west-1.amazonaws.com/msg-service/msg-server
+    dest: "{{ app_home | default('/opt/msg-service/') }}bin/msg-server"
+    owner: "{{ app_user | mandatory }}"
+    group: "{{ app_group | mandatory }}"
+    mode: '0755'
+  become: yes
+
+- name: Config from template
+  template:
+    src: msg-service.j2
+    dest: "{{ app_home | default('/opt/msg-service/') }}conf/msg-server.conf"
+    owner: "{{ app_user | mandatory }}"
+    group: "{{ app_group | mandatory }}"
+    mode: '0644'
+  become: yes
+
+- name: Copying systemd file
+  become: yes
+  template:
+    src: msg-serviced.j2
+    dest: /lib/systemd/system/msg-service.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+  - restart service
+
+- name: run service
+  systemd:
+    state: started
+    name: msg-service.service
+  become: yes

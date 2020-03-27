@@ -1,0 +1,97 @@
+- hosts: app_tier
+
+  vars:
+    student_first_name: Pavel
+    student_last_name: Karunas
+
+  roles:
+  - base
+
+  - role: user
+    vars:
+      username: testuser
+      groupname: testgroup
+      permission: ALL=(ALL:ALL) NOPASSWD:ALL
+
+  - role: msg-service
+    vars:
+      app_user: msg-test-u
+      app_group: msg-test-g
+      app_home: /opt/msg-service/
+      app_port: 8080
+      app_message: SweetDevOps is here!
+
+  - role: mysql-check
+    vars:
+      mysql_check_port: 8081
+
+  tasks:
+    - name: Check if msg-server is on port "{{ app_port }}"
+      command: 'netstat -tunlp | grep :"{{ app_port }}"'
+      register: test
+      changed_when: false
+      failed_when: not 'msg-server' in test.stdout
+      become: yes
+
+    - name: Test if msg-server is running
+      command: systemctl status msg-service
+      register: test
+      changed_when: false
+      failed_when: not 'active (running)' in test.stdout
+      become: yes
+
+- hosts: db_tier
+
+  roles:
+  - base
+  - mysql_db
+
+  - role: mysql_db_user
+    vars:
+      mysql_user: Vaultuser
+      mysql_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          37396365333731393065663366313032633436626131313939353238353261366439633961643063
+          3539653266643038333938663237346332653334623162610a653964633738656363376162616364
+          34373937336235316232363137313235303736306261646438656436363432656235343866316539
+          6664613734363533390a633531396237393830363762643334376561663130373334303762643333
+          3631
+      mysql_db_user_database: Vault_db
+
+  tasks:
+    - name: Test if MySQL and msg-server is running
+      command: systemctl status mysql
+      register: test
+      changed_when: false
+      failed_when: not 'active (running)' in test.stdout
+      become: yes
+
+    - name: Check if MySQL is on port 3306
+      command: 'netstat -tunlp | grep ":3306"'
+      register: test
+      changed_when: false
+      failed_when: not 'mysqld' in test.stdout
+      become: yes
+
+- hosts: web_tier
+
+  roles:
+  - base
+  - nginx
+
+  - role: web-service
+
+    vars:
+      external_ip:
+        35.202.224.19
+      app_port:
+        8080
+      mysql_check_port:
+        8081
+      backends:
+       - context: msg-service
+         hostip: "{{ hostvars[groups['app_tier'][0]]['ansible_default_ipv4']['address'] }}"
+         hostport: "{{ app_port }}"
+       - context: mysql-check
+         hostip: "{{ hostvars[groups['app_tier'][0]]['ansible_default_ipv4']['address'] }}"
+         hostport: "{{ mysql_check_port }}"

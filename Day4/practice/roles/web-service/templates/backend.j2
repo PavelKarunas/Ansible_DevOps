@@ -1,0 +1,10 @@
+server {
+      listen 80;
+      server_name {{ external_ip }};
+      location /{{ backends.0.context }} {
+          proxy_pass http://{{ backends.0.hostip }}:{{ backends.0.hostport }}/;
+      }
+      location /{{ backends.1.context }} {
+          proxy_pass http://{{ backends.1.hostip }}:{{ backends.1.hostport }}/;
+      }
+   }

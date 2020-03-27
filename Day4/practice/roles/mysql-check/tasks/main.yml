@@ -1,0 +1,71 @@
+---
+# tasks file for mysql-check
+- name: Check group for create
+  group:
+    name: mysql-check
+    state: present
+  become: yes
+
+- name: Create user for MySQL
+  user:
+    name: mysql-check
+    group: mysql-check
+  become: yes
+
+- name: Create a directory if it doesn't exist
+  file:
+    path: /opt/mysql-check/bin/
+    state: directory
+    owner: mysql-check
+    group: mysql-check
+  become: yes
+
+- name: Create a directory if it doesn't exist
+  file:
+    path: /opt/mysql-check/conf/
+    state: directory
+    owner: mysql-check
+    group: mysql-check
+  become: yes
+
+- name: Download file
+  get_url:
+    url: https://playpit-labs-assets.s3-eu-west-1.amazonaws.com/mysql-check/mysql-check
+    dest: /opt/mysql-check/bin/mysql-check
+    owner: mysql-check
+    group: mysql-check
+    mode: 0755
+  become: yes
+
+- name: Copying conf file with owner and permissions
+  copy:
+    content: "PORT={{ mysql_check_port }}"
+    dest: /opt/mysql-check/conf/mysql-check.conf
+    owner: mysql-check
+    group: mysql-check
+    mode: 0644
+  become: yes
+  notify:
+    - restart mysql-check
+
+- name: Copy systemd file
+  copy:
+    src: mysql-check.service
+    dest: /lib/systemd/system/mysql-check.service
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+
+- name: Check service for running status
+  systemd:
+    state: started
+    name: mysql-check.service
+  become: yes
+
+- name: Enable service
+  systemd:
+    name: mysql-check.service
+    enabled: yes
+    masked: no
+  become: yes

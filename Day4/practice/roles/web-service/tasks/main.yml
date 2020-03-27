@@ -1,0 +1,12 @@
+---
+# tasks file for web-service
+- name: Config from template
+  template:
+    src: backend.j2
+    dest: "/etc/nginx/conf.d/backend.conf"
+    mode: '0644'
+  become: yes
+  notify:
+  - restart nginx
+
+

@@ -1,0 +1,15 @@
+[Unit]
+Description=Simple Message Server
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile={{ app_home }}conf/msg-server.conf
+ExecStart={{ app_home }}bin/msg-server
+ExecStop=/bin/kill -s QUIT $MAINPID
+User= {{ app_user }}
+Group= {{ app_group }}
+
+
+[Install]
+WantedBy=multi-user.target

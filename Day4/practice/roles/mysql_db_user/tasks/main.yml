@@ -1,0 +1,28 @@
+---
+# tasks file for mysql_db_user
+- name: Add user for create DB
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_password }}"
+    priv: "*.*:ALL"
+    state: present
+  become: yes
+
+- name: Create DB
+  mysql_db:
+    name: "{{ mysql_db_user_database }}"
+    state: present
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_password }}"
+  become: yes
+
+- name: Remove anonymous users
+  mysql_user:
+   name: ''
+   host: "{{ item  }}"
+   state: absent
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost
+  become: yes
