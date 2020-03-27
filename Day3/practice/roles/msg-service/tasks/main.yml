@@ -12,12 +12,11 @@
     content: |
       {
           "PORT": "{{ app_port }}",
-          "USER": {{ app_user }},
-          "GROUP": {{ app_group }},
-          "MESSAGE": {{ app_message }}
+          "USER": "{{ app_user }}",
+          "GROUP": "{{ app_group }}",
+          "MESSAGE": "{{ app_message }}"
       }
     dest: /etc/ansible/facts.d/msg_service.fact
-    mode: '0755'
   become: yes
 
 - name: Call create user role
