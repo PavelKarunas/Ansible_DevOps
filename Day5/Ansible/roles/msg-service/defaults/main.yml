@@ -1,0 +1,5 @@
+---
+# defaults file for nginx
+part1: "{{ student_first_name |first }}"
+part2: "{{ [part1, student_last_name]|join('') }}"
+result: "{{ part2 |lower }}"

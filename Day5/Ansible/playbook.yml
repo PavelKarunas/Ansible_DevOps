@@ -1,0 +1,16 @@
+- hosts: all
+
+  vars:
+    student_first_name: Pavel
+    student_last_name: Karunas
+
+  roles:
+  - base
+
+  - role: msg-service
+    vars:
+      app_user: msg-test-u
+      app_group: msg-test-g
+      app_home: /opt/msg-service/
+      app_port: 8080
+      app_message: SweetDevOps is here!

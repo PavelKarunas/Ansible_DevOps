@@ -1,0 +1,20 @@
+---
+# tasks file for user
+- name: Ensure group "{{ groupname }}" exists
+  group:
+    name: "{{ groupname }}"
+    state: present
+  become: yes
+
+- name: Create "{{ username }}" user
+  user:
+    name: "{{ username }}"
+    group: "{{ groupname }}"
+  become: yes
+
+- name: Copy "custom" sudoers
+  copy:
+    content: "{{ username }} {{ permission | default('ALL=(ALL:ALL) NOPASSWD:ALL') }}"
+    dest: "/etc/sudoers.d/{{ username }}"
+    mode: 0644
+  become: yes
